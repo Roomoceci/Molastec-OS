@@ -36,7 +36,7 @@ database/
 
 ## Tecnologias
 
-- Node.js 20.17+
+- Node.js 22.x
 - Express
 - CommonJS
 - SQLite
