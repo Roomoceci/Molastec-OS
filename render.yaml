@@ -3,7 +3,7 @@ services:
     name: molatec-os
     runtime: node
     plan: starter
-    buildCommand: npm install
+    buildCommand: npm install --build-from-source=sqlite3
     startCommand: npm start
     healthCheckPath: /health
     autoDeployTrigger: commit

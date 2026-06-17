@@ -27,7 +27,7 @@ No Render:
 O Blueprint ja configura:
 
 ```text
-Build Command: npm install
+Build Command: npm install --build-from-source=sqlite3
 Start Command: npm start
 Health Check Path: /health
 Persistent Disk: /var/data
