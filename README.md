@@ -134,3 +134,13 @@ Configuracao padrao para Render, Railway, Fly.io ou hospedagem Node.js semelhant
 - Banco: configurar `DB_PATH` para uma pasta persistente
 
 SQLite precisa de disco persistente. Para producao com volume maior, o proximo passo recomendado e migrar para PostgreSQL.
+
+## Reset do banco
+
+Para apagar o banco atual e recriar o admin inicial no proximo start:
+
+```bash
+CONFIRM_RESET_DB=true npm run reset-db
+```
+
+Use com cuidado. Em producao, configure `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` e `DB_PATH` antes de rodar.

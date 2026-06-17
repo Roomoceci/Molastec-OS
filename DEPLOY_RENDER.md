@@ -79,3 +79,25 @@ Depois que o Render concluir o deploy, abra a URL gerada e teste:
 https://seu-app.onrender.com/health
 https://seu-app.onrender.com/login.html
 ```
+
+## Resetar banco inicial
+
+Use apenas se ainda nao houver dados importantes.
+
+1. Configure antes:
+
+```env
+ADMIN_EMAIL=seu-email@dominio.com
+ADMIN_PASSWORD=uma-senha-forte
+ADMIN_NAME=Administrador
+SEED_DEMO_DATA=false
+DB_PATH=/var/data/molatech.db
+```
+
+2. No Render, abra `Shell` do servico e rode:
+
+```bash
+CONFIRM_RESET_DB=true npm run reset-db
+```
+
+3. Depois clique em `Manual Deploy > Clear build cache & deploy` ou reinicie o servico.
