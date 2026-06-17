@@ -20,30 +20,30 @@ git push -u origin main
 No Render:
 
 1. Clique em `New`.
-2. Escolha `Web Service`.
+2. Escolha `Blueprint`.
 3. Conecte o repositorio do GitHub.
-4. Configure:
+4. Selecione o arquivo `render.yaml`.
+
+O Blueprint ja configura:
 
 ```text
 Build Command: npm install
 Start Command: npm start
 Health Check Path: /health
+Persistent Disk: /var/data
+DB_PATH: /var/data/molatech.db
 ```
 
-## 3. Criar Persistent Disk
+Se preferir criar manualmente, escolha `New > Web Service` e use as mesmas configuracoes acima.
+
+## 3. Confirmar Persistent Disk
 
 SQLite grava em arquivo. Sem disco persistente, os dados podem ser perdidos em redeploy/restart.
 
-Crie um disco no Web Service e use um mount path, por exemplo:
+O `render.yaml` ja cria um disco com mount path:
 
 ```text
 /var/data
-```
-
-Depois configure:
-
-```env
-DB_PATH=/var/data/molatech.db
 ```
 
 ## 4. Variaveis de ambiente
