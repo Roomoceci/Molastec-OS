@@ -13,6 +13,7 @@ const descriptionCounter = document.getElementById('descriptionCounter');
 const notesCounter = document.getElementById('notesCounter');
 const preferredDate = document.getElementById('preferredDate');
 const phoneInput = document.getElementById('clientPhone');
+const whatsappPublicLink = document.getElementById('whatsappPublicLink');
 
 if (localStorage.getItem('dark-mode') === 'true') {
   document.body.classList.add('dark-mode');
@@ -28,6 +29,29 @@ function todayIsoDate() {
   const offset = now.getTimezoneOffset();
   const local = new Date(now.getTime() - offset * 60000);
   return local.toISOString().slice(0, 10);
+}
+
+function sanitizePhone(phone) {
+  return String(phone || '').replace(/\D/g, '');
+}
+
+function buildWhatsAppUrl(config) {
+  const number = sanitizePhone(config.whatsappCentralNumber || '5511999999999');
+  const message = [
+    'Ola, gostaria de solicitar atendimento da MolaTech.',
+    'Preciso de ajuda com manutencao/regulagem de mola para porta de vidro.'
+  ].join('\n');
+
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
+async function setupWhatsAppLink() {
+  try {
+    const config = await apiService.getPublicConfig();
+    whatsappPublicLink.href = buildWhatsAppUrl(config);
+  } catch (error) {
+    whatsappPublicLink.href = buildWhatsAppUrl({});
+  }
 }
 
 preferredDate.min = todayIsoDate();
@@ -204,3 +228,4 @@ serviceForm.addEventListener('submit', async (event) => {
 updateCounter(description, descriptionCounter, 1200);
 updateCounter(notes, notesCounter, 800);
 loadServiceTypes();
+setupWhatsAppLink();

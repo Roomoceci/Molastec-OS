@@ -196,6 +196,17 @@
       transform: translateY(-2px);
     }
 
+    .cta-btn-whatsapp {
+      background: #16a34a;
+      color: white;
+      box-shadow: 0 12px 28px rgba(22, 163, 74, 0.22);
+    }
+
+    .cta-btn-whatsapp:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(22, 163, 74, 0.3);
+    }
+
     .hero-photos {
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
@@ -457,6 +468,7 @@
         <a href="#features">Recursos</a>
         <a href="#galeria">Serviços</a>
         <a href="solicitar-servico.html">Solicitar Serviço</a>
+        <a href="#" data-whatsapp-link>WhatsApp</a>
         <a href="login.html">
           <button>Painel Administrativo</button>
         </a>
@@ -487,6 +499,7 @@
 
         <div class="cta-buttons">
           <a href="solicitar-servico.html" class="cta-btn cta-btn-primary">Solicitar Serviço</a>
+          <a href="#" class="cta-btn cta-btn-whatsapp" data-whatsapp-link>Falar no WhatsApp</a>
         </div>
       </div>
 
@@ -540,6 +553,7 @@
         <p>Fotos focadas na operação real: mola de piso, vidro temperado, regulagem fina, troca de peças e acabamento da porta.</p>
       </div>
       <a href="solicitar-servico.html" class="cta-btn cta-btn-primary">Pedir Orçamento</a>
+      <a href="#" class="cta-btn cta-btn-whatsapp" data-whatsapp-link>WhatsApp</a>
     </div>
 
     <div class="gallery-grid">
@@ -559,6 +573,40 @@
   </section>
 
   <script>
+    function sanitizePhone(phone) {
+      return String(phone || '').replace(/\D/g, '');
+    }
+
+    function buildWhatsAppUrl(config) {
+      const number = sanitizePhone(config.whatsappCentralNumber || '5511999999999');
+      const message = [
+        'Olá, gostaria de solicitar atendimento da MolaTech.',
+        'Preciso de ajuda com manutenção/regulagem de mola para porta de vidro.'
+      ].join('\n');
+
+      return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+    }
+
+    async function setupWhatsAppLinks() {
+      try {
+        const response = await fetch('/api/config/public');
+        const config = response.ok ? await response.json() : {};
+        const url = buildWhatsAppUrl(config);
+        document.querySelectorAll('[data-whatsapp-link]').forEach(link => {
+          link.href = url;
+          link.target = '_blank';
+          link.rel = 'noopener';
+        });
+      } catch (error) {
+        const url = buildWhatsAppUrl({});
+        document.querySelectorAll('[data-whatsapp-link]').forEach(link => {
+          link.href = url;
+          link.target = '_blank';
+          link.rel = 'noopener';
+        });
+      }
+    }
+
     if (localStorage.getItem('dark-mode') === 'true') {
       document.body.classList.add('dark-mode');
     }
@@ -567,6 +615,8 @@
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('dark-mode', document.body.classList.contains('dark-mode'));
     });
+
+    setupWhatsAppLinks();
   </script>
 </body>
 </html>

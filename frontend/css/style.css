@@ -211,6 +211,25 @@ textarea { min-height: 100px; resize: vertical; }
   border-color: rgba(16, 185, 129, 0.25);
 }
 
+.btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #16a34a;
+  color: white;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.18);
+}
+
+.btn-whatsapp:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(22, 163, 74, 0.26);
+}
+
 .button-paid {
   background: rgba(37, 99, 235, 0.1);
   color: var(--primary);
