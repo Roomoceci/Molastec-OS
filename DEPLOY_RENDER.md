@@ -52,6 +52,7 @@ Configure no Render:
 
 ```env
 NODE_ENV=production
+NODE_VERSION=22.16.0
 HOST=0.0.0.0
 ADMIN_EMAIL=seu-email@dominio.com
 ADMIN_PASSWORD=uma-senha-forte

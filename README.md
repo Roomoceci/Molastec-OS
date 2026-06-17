@@ -69,6 +69,7 @@ Copie `.env.example` para `.env` quando quiser configurar ambiente local ou prod
 PORT=3000
 HOST=0.0.0.0
 NODE_ENV=production
+NODE_VERSION=22.16.0
 DB_PATH=database/molatech.db
 CORS_ORIGIN=
 ADMIN_EMAIL=admin@molatech.com
