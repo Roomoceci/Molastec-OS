@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const { verifyToken } = require('./utils/security');
 
 // Database
 const DatabaseManager = require('./database');
@@ -50,11 +51,36 @@ const reportController = new ReportController(reportService);
 const allowedOrigin = process.env.CORS_ORIGIN;
 app.disable('x-powered-by');
 app.use(cors({
-  origin: allowedOrigin ? allowedOrigin.split(',').map(origin => origin.trim()) : true
+  origin: allowedOrigin ? allowedOrigin.split(',').map(origin => origin.trim()) : process.env.NODE_ENV === 'production' ? false : true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+  }
+  next();
+});
+app.use(express.json({ limit: '200kb' }));
+app.use(express.urlencoded({ extended: true, limit: '200kb' }));
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+const requireAuth = (req, res, next) => {
+  const [scheme, token] = String(req.headers.authorization || '').split(' ');
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json({ error: 'Autenticacao obrigatoria' });
+  }
+
+  const user = verifyToken(token);
+  if (!user) {
+    return res.status(401).json({ error: 'Sessao invalida ou expirada' });
+  }
+
+  req.user = user;
+  next();
+};
 
 const serviceRequestRateLimit = (() => {
   const attempts = new Map();
@@ -96,6 +122,13 @@ app.get('/api/config/public', (req, res) => {
 // Routes - Auth
 app.post('/api/auth/login', (req, res) => authController.login(req, res));
 
+// Public service request routes
+app.get('/api/solicitacoes/tipos', (req, res) => serviceRequestController.getServiceTypes(req, res));
+app.post('/api/solicitacoes', serviceRequestRateLimit, (req, res) => serviceRequestController.create(req, res));
+
+// Protected API routes
+app.use('/api', requireAuth);
+
 // Routes - Clients
 app.get('/api/clientes', (req, res) => clientController.getAll(req, res));
 app.post('/api/clientes', (req, res) => clientController.create(req, res));
@@ -116,9 +149,7 @@ app.put('/api/ordens/:id/finalizar-pago', (req, res) => orderController.finalize
 // Routes - Service Requests (Public)
 app.get('/api/solicitacoes', (req, res) => serviceRequestController.getAll(req, res));
 app.get('/api/solicitacoes/pendentes', (req, res) => serviceRequestController.getPending(req, res));
-app.get('/api/solicitacoes/tipos', (req, res) => serviceRequestController.getServiceTypes(req, res));
 app.get('/api/solicitacoes/:id', (req, res) => serviceRequestController.getById(req, res));
-app.post('/api/solicitacoes', serviceRequestRateLimit, (req, res) => serviceRequestController.create(req, res));
 app.put('/api/solicitacoes/:id/status', (req, res) => serviceRequestController.updateStatus(req, res));
 
 // Routes - Finance and Reports
@@ -159,7 +190,7 @@ const server = app.listen(...listenArgs, () => {
   console.log(`🔧 MolaTech OS Backend v1.0`);
   console.log(`✨ Rodando em http://${HOST || 'localhost'}:${PORT}`);
   console.log(`🗄️ Banco SQLite: ${DB_PATH}`);
-  console.log(`📊 Login padrão: admin@molatech.com / admin123`);
+  console.log('📊 Painel administrativo pronto');
 });
 
 const shutdown = async () => {

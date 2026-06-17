@@ -56,6 +56,7 @@ HOST=0.0.0.0
 ADMIN_EMAIL=seu-email@dominio.com
 ADMIN_PASSWORD=uma-senha-forte
 ADMIN_NAME=Administrador
+AUTH_TOKEN_SECRET=uma-chave-grande-aleatoria
 SEED_DEMO_DATA=false
 DB_PATH=/var/data/molatech.db
 WHATSAPP_CENTRAL_NUMBER=5511999999999
@@ -90,6 +91,7 @@ Use apenas se ainda nao houver dados importantes.
 ADMIN_EMAIL=seu-email@dominio.com
 ADMIN_PASSWORD=uma-senha-forte
 ADMIN_NAME=Administrador
+AUTH_TOKEN_SECRET=uma-chave-grande-aleatoria
 SEED_DEMO_DATA=false
 DB_PATH=/var/data/molatech.db
 ```

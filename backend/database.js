@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const { hashPassword } = require('./utils/security');
 
 class DatabaseManager {
   constructor(dbPath = 'database/molatech.db') {
@@ -108,7 +109,7 @@ class DatabaseManager {
     this.db.get('SELECT COUNT(*) AS count FROM users', (err, row) => {
       if (!err && row.count === 0) {
         const adminEmail = (process.env.ADMIN_EMAIL || 'admin@molatech.com').trim().toLowerCase();
-        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+        const adminPassword = hashPassword(process.env.ADMIN_PASSWORD || 'admin123');
         const adminName = (process.env.ADMIN_NAME || 'Administrador').trim();
 
         this.db.run('INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
@@ -155,6 +156,10 @@ class DatabaseManager {
 
   getUserByEmail(email) {
     return this.queryGet('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [String(email || '').trim()]);
+  }
+
+  updateUserPassword(id, passwordHash) {
+    return this.run('UPDATE users SET password = ? WHERE id = ?', [passwordHash, id]);
   }
 
   getClients() {

@@ -32,6 +32,14 @@ class ApiService {
       const result = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('molatech_token');
+          localStorage.removeItem('molatech_user');
+          localStorage.removeItem('molatech_email');
+          if (!window.location.pathname.endsWith('/login.html')) {
+            window.location.href = 'login.html';
+          }
+        }
         throw new Error(result.error || `Erro ${response.status}`);
       }
 

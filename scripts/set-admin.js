@@ -1,5 +1,6 @@
 const path = require('path');
 const DatabaseManager = require('../backend/database');
+const { hashPassword } = require('../backend/utils/security');
 
 const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 const adminPassword = process.env.ADMIN_PASSWORD || '';
@@ -17,10 +18,10 @@ async function main() {
   const existing = await db.getUserByEmail(adminEmail);
 
   if (existing) {
-    await db.run('UPDATE users SET password = ?, name = ? WHERE id = ?', [adminPassword, adminName, existing.id]);
+    await db.run('UPDATE users SET password = ?, name = ? WHERE id = ?', [hashPassword(adminPassword), adminName, existing.id]);
     console.log(`Admin atualizado: ${adminEmail}`);
   } else {
-    await db.run('INSERT INTO users (email, password, name) VALUES (?, ?, ?)', [adminEmail, adminPassword, adminName]);
+    await db.run('INSERT INTO users (email, password, name) VALUES (?, ?, ?)', [adminEmail, hashPassword(adminPassword), adminName]);
     console.log(`Admin criado: ${adminEmail}`);
   }
 

@@ -36,7 +36,7 @@ database/
 
 ## Tecnologias
 
-- Node.js 18+
+- Node.js 20.17+
 - Express
 - CommonJS
 - SQLite
@@ -74,6 +74,7 @@ CORS_ORIGIN=
 ADMIN_EMAIL=admin@molatech.com
 ADMIN_PASSWORD=troque-esta-senha
 ADMIN_NAME=Administrador
+AUTH_TOKEN_SECRET=troque-por-uma-chave-grande-e-aleatoria
 SEED_DEMO_DATA=false
 WHATSAPP_CENTRAL_NUMBER=5511999999999
 WHATSAPP_CENTRAL_NAME=Central MolaTech

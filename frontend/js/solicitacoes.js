@@ -27,10 +27,19 @@ const requestModal = document.getElementById('requestModal');
 const statusSelect = document.getElementById('statusSelect');
 const updateStatusBtn = document.getElementById('updateStatusBtn');
 
+function authHeaders(extraHeaders = {}) {
+  return {
+    ...extraHeaders,
+    'Authorization': `Bearer ${apiService.getToken()}`
+  };
+}
+
 // Load requests
 async function loadRequests() {
   try {
-    const response = await fetch('/api/solicitacoes');
+    const response = await fetch('/api/solicitacoes', {
+      headers: authHeaders()
+    });
     if (!response.ok) throw new Error('Erro ao carregar solicitações');
     allRequests = await response.json();
     renderRequests(allRequests);
@@ -60,7 +69,9 @@ function renderRequests(requests) {
 // Open modal
 async function openRequestModal(requestId) {
   try {
-    const response = await fetch(`/api/solicitacoes/${requestId}`);
+    const response = await fetch(`/api/solicitacoes/${requestId}`, {
+      headers: authHeaders()
+    });
     if (!response.ok) throw new Error('Erro ao carregar detalhes');
     const request = await response.json();
 
@@ -97,7 +108,7 @@ async function updateRequestStatus() {
   try {
     const response = await fetch(`/api/solicitacoes/${currentRequestId}/status`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ status: statusSelect.value })
     });
 

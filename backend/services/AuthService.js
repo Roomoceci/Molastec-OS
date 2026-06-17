@@ -1,3 +1,5 @@
+const { createToken, hashPassword, isPasswordHash, verifyPassword } = require('../utils/security');
+
 class AuthService {
   constructor(db) {
     this.db = db;
@@ -11,12 +13,16 @@ class AuthService {
       throw new Error('Usuário ou senha inválidos');
     }
 
-    if (user.password !== password) {
+    if (!verifyPassword(password, user.password)) {
       throw new Error('Usuário ou senha inválidos');
     }
 
+    if (!isPasswordHash(user.password)) {
+      await this.db.updateUserPassword(user.id, hashPassword(password));
+    }
+
     return {
-      token: 'molatech-token',
+      token: createToken(user),
       name: user.name,
       email: user.email
     };
@@ -24,7 +30,7 @@ class AuthService {
 
   generateToken(user) {
     return {
-      token: 'molatech-token',
+      token: createToken(user),
       name: user.name,
       email: user.email
     };
