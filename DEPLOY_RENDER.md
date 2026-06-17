@@ -101,3 +101,15 @@ CONFIRM_RESET_DB=true npm run reset-db
 ```
 
 3. Depois clique em `Manual Deploy > Clear build cache & deploy` ou reinicie o servico.
+
+## Corrigir login admin sem apagar dados
+
+Se o login definitivo nao funcionar, confira as variaveis `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` e `DB_PATH`.
+
+Depois abra `Shell` no Render e rode:
+
+```bash
+npm run set-admin
+```
+
+O comando cria ou atualiza o usuario admin usando os valores atuais das variaveis de ambiente.

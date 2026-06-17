@@ -107,9 +107,9 @@ class DatabaseManager {
   seedData() {
     this.db.get('SELECT COUNT(*) AS count FROM users', (err, row) => {
       if (!err && row.count === 0) {
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@molatech.com';
+        const adminEmail = (process.env.ADMIN_EMAIL || 'admin@molatech.com').trim().toLowerCase();
         const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-        const adminName = process.env.ADMIN_NAME || 'Administrador';
+        const adminName = (process.env.ADMIN_NAME || 'Administrador').trim();
 
         this.db.run('INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
           [adminEmail, adminPassword, adminName]);
@@ -154,7 +154,7 @@ class DatabaseManager {
   }
 
   getUserByEmail(email) {
-    return this.queryGet('SELECT * FROM users WHERE email = ?', [email]);
+    return this.queryGet('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [String(email || '').trim()]);
   }
 
   getClients() {

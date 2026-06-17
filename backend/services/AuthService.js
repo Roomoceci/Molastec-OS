@@ -4,7 +4,8 @@ class AuthService {
   }
 
   async authenticate(email, password) {
-    const user = await this.db.getUserByEmail(email);
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const user = await this.db.getUserByEmail(normalizedEmail);
     
     if (!user) {
       throw new Error('Usuário ou senha inválidos');

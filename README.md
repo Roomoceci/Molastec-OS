@@ -144,3 +144,11 @@ CONFIRM_RESET_DB=true npm run reset-db
 ```
 
 Use com cuidado. Em producao, configure `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` e `DB_PATH` antes de rodar.
+
+Para atualizar ou criar o usuario admin sem apagar o banco:
+
+```bash
+npm run set-admin
+```
+
+Esse comando usa `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` e `DB_PATH`.
