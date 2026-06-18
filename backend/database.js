@@ -166,6 +166,10 @@ class DatabaseManager {
     return this.queryAll('SELECT * FROM clients ORDER BY name');
   }
 
+  getClientByEmail(email) {
+    return this.queryGet('SELECT * FROM clients WHERE LOWER(email) = LOWER(?)', [String(email || '').trim()]);
+  }
+
   createClient(client) {
     return this.run('INSERT INTO clients (name, phone, email, address, notes) VALUES (?, ?, ?, ?, ?)',
       [client.name, client.phone || null, client.email || null, client.address || null, client.notes || null]);

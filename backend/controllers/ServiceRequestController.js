@@ -52,6 +52,15 @@ class ServiceRequestController {
     }
   }
 
+  async convertToOrder(req, res) {
+    try {
+      const result = await this.serviceRequestService.convertRequestToOrder(req.params.id, req.body);
+      res.status(201).json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
   async getServiceTypes(req, res) {
     try {
       const types = this.serviceRequestService.getServiceTypes();

@@ -151,6 +151,7 @@ app.get('/api/solicitacoes', (req, res) => serviceRequestController.getAll(req, 
 app.get('/api/solicitacoes/pendentes', (req, res) => serviceRequestController.getPending(req, res));
 app.get('/api/solicitacoes/:id', (req, res) => serviceRequestController.getById(req, res));
 app.put('/api/solicitacoes/:id/status', (req, res) => serviceRequestController.updateStatus(req, res));
+app.post('/api/solicitacoes/:id/gerar-os', (req, res) => serviceRequestController.convertToOrder(req, res));
 
 // Routes - Finance and Reports
 app.get('/api/financeiro/resumo', (req, res) => reportController.getFinanceSummary(req, res));

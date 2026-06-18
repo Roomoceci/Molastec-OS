@@ -26,6 +26,7 @@ const refreshRequests = document.getElementById('refreshRequests');
 const requestModal = document.getElementById('requestModal');
 const statusSelect = document.getElementById('statusSelect');
 const updateStatusBtn = document.getElementById('updateStatusBtn');
+const convertToOrderBtn = document.getElementById('convertToOrderBtn');
 
 function authHeaders(extraHeaders = {}) {
   return {
@@ -77,6 +78,7 @@ async function openRequestModal(requestId) {
 
     currentRequestId = request.id;
     statusSelect.value = request.status;
+    convertToOrderBtn.disabled = request.status === 'Cancelada' || request.status === 'Agendada' || request.status === 'Concluída';
 
     document.getElementById('modalClientName').textContent = request.client_name;
     document.getElementById('modalClientPhone').textContent = request.client_phone;
@@ -118,6 +120,25 @@ async function updateRequestStatus() {
     closeRequestModal();
     await loadRequests();
   } catch (error) {
+    toastManager.error(error.message);
+  }
+}
+
+async function convertRequestToOrder() {
+  if (!currentRequestId) return;
+
+  if (!confirm('Gerar uma Ordem de Serviço a partir desta solicitação?')) {
+    return;
+  }
+
+  try {
+    convertToOrderBtn.disabled = true;
+    const result = await apiService.convertRequestToOrder(currentRequestId);
+    toastManager.success(`OS #${result.order_id} criada com sucesso`);
+    closeRequestModal();
+    await loadRequests();
+  } catch (error) {
+    convertToOrderBtn.disabled = false;
     toastManager.error(error.message);
   }
 }
@@ -188,6 +209,8 @@ requestModal.addEventListener('click', (e) => {
     closeRequestModal();
   }
 });
+
+window.convertRequestToOrder = convertRequestToOrder;
 
 // Load on page load
 loadRequests();

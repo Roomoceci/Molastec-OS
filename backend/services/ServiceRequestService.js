@@ -52,6 +52,63 @@ class ServiceRequestService {
     return this.getRequestById(id);
   }
 
+  async convertRequestToOrder(id, data = {}) {
+    const request = await this.getRequestById(id);
+    if (!request) {
+      throw new Error('Solicitacao nao encontrada');
+    }
+
+    if (request.status === 'Cancelada') {
+      throw new Error('Solicitacao cancelada nao pode virar OS');
+    }
+
+    if (['Agendada', 'Concluida', 'Concluída'].includes(request.status)) {
+      throw new Error('Esta solicitacao ja foi encaminhada ou concluida');
+    }
+
+    let client = await this.db.getClientByEmail(request.clientEmail);
+    let clientId = client?.id;
+
+    if (!clientId) {
+      clientId = await this.db.createClient({
+        name: request.clientName,
+        phone: request.clientPhone,
+        email: request.clientEmail,
+        address: request.address,
+        notes: `Criado a partir da solicitacao #${request.id}`
+      });
+    }
+
+    const orderTitle = data.title || request.serviceType;
+    const orderDescription = [
+      request.description,
+      '',
+      `Endereco: ${request.address}`,
+      request.preferred_date ? `Data preferida: ${request.preferred_date}` : null,
+      request.notes ? `Observacoes: ${request.notes}` : null,
+      `Origem: solicitacao #${request.id}`
+    ].filter(Boolean).join('\n');
+
+    const orderId = await this.db.createOrder({
+      client_id: clientId,
+      technician_id: data.technician_id || null,
+      title: orderTitle,
+      description: orderDescription,
+      total: Number(data.total || 0),
+      paid: false,
+      status: data.status || 'Aberta',
+      created_at: new Date().toISOString()
+    });
+
+    await this.db.run('UPDATE service_requests SET status = ? WHERE id = ?', ['Agendada', id]);
+
+    return {
+      order_id: orderId,
+      client_id: clientId,
+      request: await this.getRequestById(id)
+    };
+  }
+
   validateRequestData(data) {
     if (data.company || data.website || data._gotcha) {
       throw new Error('Solicitacao invalida');

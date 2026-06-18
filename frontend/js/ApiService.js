@@ -117,6 +117,10 @@ class ApiService {
     return this.get('/config/public');
   }
 
+  async convertRequestToOrder(id, data = {}) {
+    return this.post(`/solicitacoes/${id}/gerar-os`, data);
+  }
+
   async getFinanceSummary() {
     return this.get('/financeiro/resumo');
   }
