@@ -14,6 +14,7 @@ const notesCounter = document.getElementById('notesCounter');
 const preferredDate = document.getElementById('preferredDate');
 const phoneInput = document.getElementById('clientPhone');
 const whatsappPublicLink = document.getElementById('whatsappPublicLink');
+const requestCheck = document.getElementById('requestCheck');
 
 if (localStorage.getItem('dark-mode') === 'true') {
   document.body.classList.add('dark-mode');
@@ -55,6 +56,7 @@ async function setupWhatsAppLink() {
 }
 
 preferredDate.min = todayIsoDate();
+if (requestCheck) requestCheck.value = '';
 
 async function loadServiceTypes() {
   const fallbackTypes = [
@@ -139,9 +141,9 @@ function validateForm() {
   const descriptionValue = description.value.trim();
   const address = document.getElementById('address').value.trim();
   const preferredDateValue = preferredDate.value;
-  const company = document.getElementById('company').value.trim();
+  const requestCheckValue = requestCheck ? requestCheck.value.trim() : '';
 
-  if (company) errors.push('Solicitacao invalida');
+  if (requestCheckValue) errors.push('Solicitacao invalida');
   if (clientName.length < 3) errors.push('Informe o nome completo');
   if (!isValidPhone(clientPhone)) errors.push('Informe um telefone valido com DDD');
   if (!isValidEmail(clientEmail)) errors.push('Informe um email valido');
@@ -197,7 +199,7 @@ serviceForm.addEventListener('submit', async (event) => {
     address: document.getElementById('address').value.trim(),
     preferred_date: preferredDate.value || null,
     notes: notes.value.trim(),
-    company: document.getElementById('company').value.trim()
+    request_check: requestCheck ? requestCheck.value.trim() : ''
   };
 
   try {

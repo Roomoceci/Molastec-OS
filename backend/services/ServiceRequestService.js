@@ -110,7 +110,7 @@ class ServiceRequestService {
   }
 
   validateRequestData(data) {
-    if (data.company || data.website || data._gotcha) {
+    if (data.request_check || data.company || data.website || data._gotcha) {
       throw new Error('Solicitacao invalida');
     }
 
