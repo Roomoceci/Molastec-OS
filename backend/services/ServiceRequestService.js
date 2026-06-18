@@ -66,6 +66,27 @@ class ServiceRequestService {
       throw new Error('Esta solicitacao ja foi encaminhada ou concluida');
     }
 
+    const total = Number(data.total || 0);
+    if (Number.isNaN(total) || total < 0) {
+      throw new Error('Valor da OS invalido');
+    }
+
+    const hasTechnician = data.technician_id !== undefined && data.technician_id !== null && data.technician_id !== '';
+    const technicianId = hasTechnician ? Number(data.technician_id) : null;
+    if (hasTechnician && (!Number.isInteger(technicianId) || technicianId <= 0)) {
+      throw new Error('Tecnico invalido ou inativo');
+    }
+
+    if (technicianId) {
+      const technician = await this.db.queryGet(
+        'SELECT id FROM technicians WHERE id = ? AND status = ?',
+        [technicianId, 'Ativo']
+      );
+      if (!technician) {
+        throw new Error('Tecnico invalido ou inativo');
+      }
+    }
+
     let client = await this.db.getClientByEmail(request.clientEmail);
     let clientId = client?.id;
 
@@ -91,10 +112,10 @@ class ServiceRequestService {
 
     const orderId = await this.db.createOrder({
       client_id: clientId,
-      technician_id: data.technician_id || null,
+      technician_id: technicianId,
       title: orderTitle,
       description: orderDescription,
-      total: Number(data.total || 0),
+      total,
       paid: false,
       status: data.status || 'Aberta',
       created_at: new Date().toISOString()

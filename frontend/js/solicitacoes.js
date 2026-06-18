@@ -11,6 +11,12 @@ uiManager.initializePage();
 // State
 let currentRequestId = null;
 let allRequests = [];
+let activeTechnicians = [];
+
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL'
+});
 
 function statusClass(status) {
   return String(status || '')
@@ -19,14 +25,24 @@ function statusClass(status) {
     .toLowerCase();
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // Elements
 const requestsTable = document.getElementById('requestsTable');
 const filterStatus = document.getElementById('filterStatus');
 const refreshRequests = document.getElementById('refreshRequests');
 const requestModal = document.getElementById('requestModal');
 const statusSelect = document.getElementById('statusSelect');
-const updateStatusBtn = document.getElementById('updateStatusBtn');
 const convertToOrderBtn = document.getElementById('convertToOrderBtn');
+const orderTechnicianSelect = document.getElementById('orderTechnicianSelect');
+const orderTotalInput = document.getElementById('orderTotalInput');
 
 function authHeaders(extraHeaders = {}) {
   return {
@@ -35,39 +51,54 @@ function authHeaders(extraHeaders = {}) {
   };
 }
 
-// Load requests
 async function loadRequests() {
   try {
     const response = await fetch('/api/solicitacoes', {
       headers: authHeaders()
     });
-    if (!response.ok) throw new Error('Erro ao carregar solicitações');
+    if (!response.ok) throw new Error('Erro ao carregar solicitacoes');
     allRequests = await response.json();
     renderRequests(allRequests);
     updateStats();
   } catch (error) {
-    toastManager.error('Erro ao carregar solicitações');
+    toastManager.error('Erro ao carregar solicitacoes');
   }
 }
 
-// Render requests table
+async function loadActiveTechnicians() {
+  try {
+    activeTechnicians = await apiService.getActiveTechnicians();
+    renderTechnicianOptions();
+  } catch (error) {
+    activeTechnicians = [];
+    renderTechnicianOptions();
+    toastManager.error('Erro ao carregar tecnicos ativos');
+  }
+}
+
+function renderTechnicianOptions() {
+  orderTechnicianSelect.innerHTML = '<option value="">A definir</option>' +
+    activeTechnicians
+      .map(tech => `<option value="${tech.id}">${escapeHtml(tech.name)}</option>`)
+      .join('');
+}
+
 function renderRequests(requests) {
   requestsTable.innerHTML = requests.map(req => `
     <tr>
       <td>${req.id}</td>
-      <td>${req.client_name}</td>
-      <td>${req.client_phone}</td>
-      <td>${req.service_type}</td>
-      <td><span class="status-badge status-${statusClass(req.status)}">${req.status}</span></td>
+      <td>${escapeHtml(req.client_name)}</td>
+      <td>${escapeHtml(req.client_phone)}</td>
+      <td>${escapeHtml(req.service_type)}</td>
+      <td><span class="status-badge status-${statusClass(req.status)}">${escapeHtml(req.status)}</span></td>
       <td>${new Date(req.created_at).toLocaleDateString('pt-BR')}</td>
       <td>
-        <button class="btn btn-primary" style="padding: 5px 12px; font-size: 0.85rem;" onclick="openRequestModal(${req.id})">👁️ Ver</button>
+        <button class="btn btn-primary" style="padding: 5px 12px; font-size: 0.85rem;" onclick="openRequestModal(${req.id})">Ver</button>
       </td>
     </tr>
   `).join('');
 }
 
-// Open modal
 async function openRequestModal(requestId) {
   try {
     const response = await fetch(`/api/solicitacoes/${requestId}`, {
@@ -78,17 +109,23 @@ async function openRequestModal(requestId) {
 
     currentRequestId = request.id;
     statusSelect.value = request.status;
-    convertToOrderBtn.disabled = request.status === 'Cancelada' || request.status === 'Agendada' || request.status === 'Concluída';
+
+    const cannotConvert = ['cancelada', 'agendada', 'concluida'].includes(statusClass(request.status));
+    convertToOrderBtn.disabled = cannotConvert;
+    orderTechnicianSelect.value = '';
+    orderTechnicianSelect.disabled = cannotConvert;
+    orderTotalInput.value = '';
+    orderTotalInput.disabled = cannotConvert;
 
     document.getElementById('modalClientName').textContent = request.client_name;
     document.getElementById('modalClientPhone').textContent = request.client_phone;
     document.getElementById('modalClientEmail').textContent = request.client_email;
     document.getElementById('modalServiceType').textContent = request.service_type;
-    document.getElementById('modalPreferredDate').textContent = request.preferred_date ? new Date(request.preferred_date).toLocaleDateString('pt-BR') : 'Não especificada';
+    document.getElementById('modalPreferredDate').textContent = request.preferred_date ? new Date(request.preferred_date).toLocaleDateString('pt-BR') : 'Nao especificada';
     document.getElementById('modalCreatedAt').textContent = new Date(request.created_at).toLocaleDateString('pt-BR');
     document.getElementById('modalAddress').textContent = request.address;
     document.getElementById('modalDescription').textContent = request.description;
-    document.getElementById('modalNotes').textContent = request.notes || 'Nenhuma observação';
+    document.getElementById('modalNotes').textContent = request.notes || 'Nenhuma observacao';
     document.getElementById('modalStatus').textContent = request.status;
 
     requestModal.style.display = 'flex';
@@ -97,13 +134,11 @@ async function openRequestModal(requestId) {
   }
 }
 
-// Close modal
 function closeRequestModal() {
   requestModal.style.display = 'none';
   currentRequestId = null;
 }
 
-// Update status
 async function updateRequestStatus() {
   if (!currentRequestId) return;
 
@@ -127,13 +162,31 @@ async function updateRequestStatus() {
 async function convertRequestToOrder() {
   if (!currentRequestId) return;
 
-  if (!confirm('Gerar uma Ordem de Serviço a partir desta solicitação?')) {
+  const total = Number(orderTotalInput.value || 0);
+  if (Number.isNaN(total) || total < 0) {
+    toastManager.error('Informe um valor valido para a OS');
+    orderTotalInput.focus();
+    return;
+  }
+
+  const selectedTechnician = activeTechnicians.find(tech => String(tech.id) === orderTechnicianSelect.value);
+  const technicianLabel = selectedTechnician ? selectedTechnician.name : 'A definir';
+  const confirmMessage = [
+    'Gerar uma Ordem de Servico a partir desta solicitacao?',
+    `Tecnico: ${technicianLabel}`,
+    `Valor: ${currencyFormatter.format(total)}`
+  ].join('\n');
+
+  if (!confirm(confirmMessage)) {
     return;
   }
 
   try {
     convertToOrderBtn.disabled = true;
-    const result = await apiService.convertRequestToOrder(currentRequestId);
+    const result = await apiService.convertRequestToOrder(currentRequestId, {
+      technician_id: orderTechnicianSelect.value ? Number(orderTechnicianSelect.value) : null,
+      total
+    });
     toastManager.success(`OS #${result.order_id} criada com sucesso`);
     closeRequestModal();
     await loadRequests();
@@ -143,7 +196,6 @@ async function convertRequestToOrder() {
   }
 }
 
-// Filter by status
 function filterByStatus() {
   const status = filterStatus.value;
   if (!status) {
@@ -154,7 +206,6 @@ function filterByStatus() {
   }
 }
 
-// Update stats
 function updateStats() {
   const pending = allRequests.filter(r => r.status === 'Pendente').length;
   const approved = allRequests.filter(r => r.status === 'Aprovada').length;
@@ -166,12 +217,11 @@ function updateStats() {
   document.getElementById('totalCount').textContent = allRequests.length;
 }
 
-// Event listeners
 filterStatus.addEventListener('change', filterByStatus);
 
 refreshRequests.addEventListener('click', async () => {
   await loadRequests();
-  toastManager.success('Solicitações atualizadas!');
+  toastManager.success('Solicitacoes atualizadas!');
 });
 
 document.getElementById('printButton').addEventListener('click', () => {
@@ -181,7 +231,7 @@ document.getElementById('printButton').addEventListener('click', () => {
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
-      <title>Solicitações de Serviço</title>
+      <title>Solicitacoes de Servico</title>
       <style>
         body { font-family: Arial, sans-serif; margin: 20px; color: #222; }
         h1 { text-align: center; }
@@ -192,7 +242,7 @@ document.getElementById('printButton').addEventListener('click', () => {
       </style>
     </head>
     <body>
-      <h1>Relatório de Solicitações</h1>
+      <h1>Relatorio de Solicitacoes</h1>
       ${table.outerHTML}
       <div class="print-date">Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
     </body>
@@ -203,14 +253,16 @@ document.getElementById('printButton').addEventListener('click', () => {
   setTimeout(() => printWindow.print(), 250);
 });
 
-// Close modal when clicking outside
-requestModal.addEventListener('click', (e) => {
-  if (e.target === requestModal) {
+requestModal.addEventListener('click', (event) => {
+  if (event.target === requestModal) {
     closeRequestModal();
   }
 });
 
+window.openRequestModal = openRequestModal;
+window.closeRequestModal = closeRequestModal;
+window.updateRequestStatus = updateRequestStatus;
 window.convertRequestToOrder = convertRequestToOrder;
 
-// Load on page load
 loadRequests();
+loadActiveTechnicians();

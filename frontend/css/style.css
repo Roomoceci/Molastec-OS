@@ -555,6 +555,45 @@ tr:hover { background: var(--bg-light); }
 
 .modal-header h3 { margin: 0; font-size: 1.25rem; }
 
+.conversion-panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--bg-light);
+  margin-top: 20px;
+}
+
+.conversion-panel h3 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  color: var(--text-light);
+}
+
+.conversion-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 14px;
+}
+
+.conversion-grid label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.conversion-grid select,
+.conversion-grid input {
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  .conversion-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* TOASTS */
 .toast {
   position: fixed;
